@@ -5,19 +5,17 @@ import numpy as np
 from meegkit.trca import TRCA
 
 
-path = '/Volumes/SPARK_Data/Cloud/연구/Open Dataset/40_Class_SSVEP/'
+path = 'E:\\Project\\ETC_BCI-review\\Walkthrough\\Spark\\SSVEP\\'
 
 data_loaded = sio.loadmat(path + 'S1.mat')['data']
 ch_sel_list = np.concatenate([np.arange(47, 48), np.arange(53, 58), np.arange(60, 63)]) # 47: Pz, 53: PO5, 54: PO3, 55: POz, 56: PO4, 57: PO6, 60: O1, 61: Oz, 62: O2
 data_ch_sel = data_loaded[ch_sel_list].transpose(1, 0, 2, 3)
+data_ch_sel = data_ch_sel[:,:,0:4,:]
 del data_loaded
 
 n_samp_ori, n_ch, n_class, number_of_runs = data_ch_sel.shape
 total_label = np.array([i for i in range(n_class)]*number_of_runs).reshape(number_of_runs, n_class).transpose()
-
-stim_info = sio.loadmat(path + 'Freq_Phase.mat')
-phase = stim_info['phases'].squeeze()
-freq = stim_info['freqs'].squeeze()
+total_label = total_label[0:4,:] # four-class classification
 
 fs = 250
 t_preonset = 0.5
@@ -25,7 +23,7 @@ t_stim = 5
 t_postonset = 0.5
 
 t_delay = 0.14
-t_data_in_use = 0.5
+t_data_in_use = 4
 
 samp_start = round((t_preonset + t_delay)*fs)
 samp_end = round((t_preonset + t_delay + t_data_in_use)*fs) 
@@ -47,7 +45,7 @@ trca = TRCA(fs, filterbank, is_ensemble)
 
 class CrossValidation:
     def __init__(self):
-        self.number_of_samples_epoched = 125
+        self.number_of_samples_epoched = 1000
         self.number_of_channels = 9
         self.number_of_runs = number_of_runs
         self.acc = []
@@ -77,12 +75,12 @@ class CrossValidation:
         print("Classification accuracy: %.1f%% \n" % np.mean(self.acc))
 
 
-for i in range(number_of_runs):
+for i in range(0,1):
     CV = CrossValidation()
     training_data, training_label, test_data, test_label = CV.data_assign(total_data, total_label, i)
 
-    trca.fit(training_data, training_label)
+    trca.fit(training_data, training_label) #coeff [fb_i, class_i, :]
     predicted_label = trca.predict(test_data)
     CV.score(predicted_label, test_label)
-
+    
 CV.accuracy_print()

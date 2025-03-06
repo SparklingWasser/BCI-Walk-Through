@@ -5,7 +5,7 @@
 import numpy as np
 import scipy.io as sio
 
-file_path = '/Volumes/SPARK_Data/Cloud/연구/Open Dataset/DEAP database/data_preprocessed_matlab/s10.mat'
+file_path = 'E:\\Project\\ETC_BCI-review\\Walkthrough\\Spark\\Emotion\\s13.mat'
 data_loaded = sio.loadmat(file_path)
 
 ch_idx = np.arange(0, 32)
@@ -44,7 +44,6 @@ from skorch.dataset import ValidSplit
 X = SliceDataset(windows_dataset, idx=0)
 y = np.array([y for y in SliceDataset(windows_dataset, idx=1)])
 
-
 import torch
 from braindecode.util import set_random_seeds
 import random
@@ -59,7 +58,6 @@ np.random.seed(seed)
 random.seed(seed)
 
 training_data, test_data, training_label, test_label = train_test_split(X, y, test_size=0.2, shuffle=False)
-
 
 from braindecode.models import EEGConformer
 from braindecode import EEGClassifier
@@ -88,7 +86,7 @@ class Conformer:
         lr = 0.0000625
         weight_decay = 0.001
         batch_size = 32
-        n_epochs = 20
+        n_epochs = 200
 
         cuda = torch.cuda.is_available()  # check if GPU is available, if True chooses to use it
         device = "cuda" if cuda else "cpu"
